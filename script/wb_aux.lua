@@ -1,8 +1,11 @@
 --Generate from outside the duel
-CATEGORY_CONJURE=0x1000000000
+CATEGORY_CONJURE=0x20000000
 
 --Abyssal Dredges
 CARD_ABYSSAL_DREDGE=851632001
+
+NORMAL_IGKNIGHTS={96802306,93662626,67273917,50407691,97024987,24019092,61639289,24131534,851632017}
+
 
 if not WbAux then
     WbAux={}
@@ -22,3 +25,4 @@ function WbAux.SpecialSummonDredge(tp, pos)
     if not pos then pos=POS_FACEUP end
     return Duel.SpecialSummon(dredge, SUMMON_TYPE_SPECIAL, tp, tp, false,false, pos)
 end
+
