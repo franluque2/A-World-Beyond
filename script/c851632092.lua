@@ -3,7 +3,7 @@ Duel.LoadScript ("wb_aux.lua")
 local s,id=GetID()
 function s.initial_effect(c)
 	c:EnableReviveLimit()
-	Link.AddProcedure(c,aux.FilterBoolFunctionEx(Card.IsSetCard,SET_TECHMINATOR),3,3)
+	Link.AddProcedure(c,aux.FilterBoolFunctionEx(Card.IsSetCard,SET_TECHMINATOR),2,3)
 
 	c:SetUniqueOnField(1,0,id)
 
@@ -16,7 +16,7 @@ function s.initial_effect(c)
 	e1:SetValue(s.znval)
 	c:RegisterEffect(e1)
 
-    local e2=Effect.CreateEffect(c)
+	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_SINGLE)
 	e2:SetCode(EFFECT_CANNOT_BE_BATTLE_TARGET)
 	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
@@ -25,9 +25,9 @@ function s.initial_effect(c)
 	e2:SetValue(aux.imval2)
 	c:RegisterEffect(e2)
 
-    local e3=Effect.CreateEffect(c)
+	local e3=Effect.CreateEffect(c)
 	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
-    e3:SetDescription(aux.Stringid(id, 1))
+	e3:SetDescription(aux.Stringid(id, 1))
 	e3:SetType(EFFECT_TYPE_IGNITION)
 	e3:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e3:SetRange(LOCATION_MZONE)
@@ -37,15 +37,15 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 
 
-    local e2=Effect.CreateEffect(c)
+	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_QUICK_O)
-    e2:SetDescription(aux.Stringid(id, 2))
+	e2:SetDescription(aux.Stringid(id, 2))
 	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e2:SetCode(EVENT_FREE_CHAIN)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetHintTiming(0,TIMING_STANDBY_PHASE|TIMING_MAIN_END|TIMINGS_CHECK_MONSTER_E)
 	e2:SetCountLimit(1,id)
-    e2:SetCost(s.cpcst)
+	e2:SetCost(s.cpcst)
 	e2:SetTarget(s.cptg)
 	e2:SetOperation(s.cpop)
 	c:RegisterEffect(e2)
@@ -59,7 +59,7 @@ s.listed_series={SET_TECHMINATOR,SET_DIKTAT}
 function s.cpcst(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return  Duel.IsExistingMatchingCard(s.cpfilter,tp,LOCATION_HAND,0,1,nil) end
 	Duel.DiscardHand(tp,s.cpfilter,1,1,REASON_COST+REASON_DISCARD)
-    local g=Duel.GetOperatedGroup()
+	local g=Duel.GetOperatedGroup()
 	e:SetLabelObject(g:GetFirst())
 
 end
@@ -70,7 +70,7 @@ function s.cpfilter(c)
 end
 function s.cptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chk==0 then return true end
-    local tc=e:GetLabelObject()
+	local tc=e:GetLabelObject()
 	local te,ceg,cep,cev,cre,cr,crp=tc:CheckActivateEffect(false,true,true)
 	Duel.ClearTargetCard()
 	tc:CreateEffectRelation(e)
@@ -112,16 +112,16 @@ end
 function s.gyspop(e,tp,eg,ep,ev,re,r,rp)
 	local tc=Duel.GetFirstTarget()
 	if tc:IsRelateToEffect(e) then
-        if Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP,Duel.GetMatchingGroup(Card.IsType,tp,LOCATION_MZONE,LOCATION_MZONE,nil,TYPE_LINK):GetToBeLinkedZone(tc,tp,true)) then
-            if Duel.IsExistingMatchingCard(Card.IsAbleToGrave,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) and Duel.SelectYesNo(tp, aux.Stringid(id, 0)) then
-                Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-                local g=Duel.SelectMatchingCard(tp,Card.IsAbleToGrave,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
-                if #g>0 then
-                    Duel.HintSelection(g,true)
-                    Duel.SendtoGrave(g,REASON_EFFECT)
-                end
-        
-            end
-        end
+		if Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP,Duel.GetMatchingGroup(Card.IsType,tp,LOCATION_MZONE,LOCATION_MZONE,nil,TYPE_LINK):GetToBeLinkedZone(tc,tp,true)) then
+			if Duel.IsExistingMatchingCard(Card.IsAbleToGrave,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) and Duel.SelectYesNo(tp, aux.Stringid(id, 0)) then
+				Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+				local g=Duel.SelectMatchingCard(tp,Card.IsAbleToGrave,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
+				if #g>0 then
+					Duel.HintSelection(g,true)
+					Duel.SendtoGrave(g,REASON_EFFECT)
+				end
+		
+			end
+		end
 	end
 end
