@@ -59,10 +59,10 @@ function s.cost2(e,tp,eg,ep,ev,re,r,rp,chk)
     e:GetHandler():RemoveCounter(tp, DRAGON_BALL_COUNTER, 1, REASON_COST)
 end
 function s.tg2(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chk==0 then return Duel.GetFlagEffect(id, 0)==0 end
+	if chk==0 then return Duel.GetFlagEffect(tp, id)==0 end
 end
 function s.op2(e,tp,eg,ep,ev,re,r,rp)
-    local e1=Effect.CreateEffect(c)
+    local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e1:SetCode(EVENT_CHAINING)
 	e1:SetOperation(s.actop)
