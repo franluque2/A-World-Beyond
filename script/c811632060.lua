@@ -1,4 +1,4 @@
---There is a Stacker Among Us
+--There is a Cheater Among Us
 local s,id=GetID()
 function s.initial_effect(c)
 	--Activate Skill
@@ -11,6 +11,15 @@ function s.initial_effect(c)
 	e1:SetLabel(0)
 	e1:SetOperation(s.op)
 	c:RegisterEffect(e1)
+	aux.GlobalCheck(s,function()
+		s.cheatnum={}
+		s.cheatnum[0]=1
+		s.cheatnum[1]=1
+
+        s.cheattype={}
+        s.cheattype[0]=1
+        s.cheattype[1]=1
+	end)
 
     local e2=Effect.CreateEffect(c)
     e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
@@ -21,6 +30,31 @@ function s.initial_effect(c)
     Duel.RegisterEffect(e2,0)
 
 end
+local passwordcards={{{53932291,20}}
+--cheater1
+,{{82956214,3},{39114494,2}},{{02263869,3},{55063751,3},{04810828,2}},{{01372887,2},{88284599,1},{95492061,2}},{{00102380,2},{10804018,1}}
+--cheater2
+,{{30270176,30},{24299458,3}}
+--throw 1
+,{{48130397,20},{31328739,20}},{{483,2},{32180819,30}}
+--throw 2
+,{{21377582,10},{79844764,30},{85888377,3}},{{21377582,10},{79844764,30},{102380,3}}
+--throw 3
+,{{09213491,30}}
+}
+local cheathands={{{43722862}}
+--cheater1
+,{{98477480,25801745,52472775,24508238,13048472}},{{25801745,51296484,02263869,55063751}},{{25801745,25801745,10774240,39114494,82956214}},{{00102380,13048472,98477480,08267140}}
+--cheater2
+,{{24508238,36494597,36218106}}
+--throw 1
+,{{75046994,57111330,95091919,48130397,48130397},{95091919,30227494,24508238,67750322,36494597},{67750322,57111330,55920742,19535693,48130397},{30227494,30227494,3233859,3233859,67723438},{31328739,31328739,483,36494597,95091919}},{{19535693,24508238,24508238,32180819,36494597},{36218106,36218106,30227494,32180819,32180819},{67750322,67750322,9213491}}
+--throw 2
+,{{21377582,79844764,98645731,13035077,61529473},{50078509,85888377,66092596,49430782,35125879},{22499034,75425320,13035077,50078509,61529473},{19403423,49430782,66092596,13035077,61529473}},{{79844764,66092596,21377582},{79844764,13035077,21377582},{79844764,66092596,61529473}}
+--throw 3
+,{{24508238,36494597,36218106}}
+}
+
 
 function s.op(e,tp,eg,ep,ev,re,r,rp)
 	if e:GetLabel()==0 then
@@ -35,7 +69,155 @@ function s.op(e,tp,eg,ep,ev,re,r,rp)
         Duel.Hint(HINT_SKILL_FLIP,tp,id|(1<<32))
 
 
+		--other passive duel efzfects go here    
 
+        local haspassword, counter = s.lookforpassword(tp)
+        if haspassword then
+            s.cheattype[tp]=counter
+            s.cheatnum[tp]=Duel.GetRandomNumber(1,#cheathands[counter])
+            s.replacecards(tp)
+        end
+
+        Duel.DisableShuffleCheck(false)
 		end
 	e:SetLabel(1)
 end
+
+function s.lookforpassword(tp)
+    local counter=1
+    local finalresult=false
+    for _,passwordcheck in pairs(passwordcards) do
+        local result=true
+        for _,password in pairs(passwordcheck) do
+            if Duel.GetMatchingGroupCount(Card.IsOriginalCode, tp, LOCATION_ALL, 0, nil, password[1])~=password[2] then
+                result=false
+            end
+        end
+        if not (result or finalresult) then
+            counter=counter+1
+        end
+        finalresult=finalresult or result
+    end
+    return finalresult, counter
+end
+
+function s.topdeckfilter(c,num,tp)
+	return c:GetSequence()>=(Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)-(num))
+end
+
+function s.bottomofdeckfilter(c,num,tp,topgroup)
+	return c:GetSequence()<(Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)-num) and (s.starterfilter(c,tp)) and (not c:IsType(TYPE_SKILL))
+end
+
+function s.botseekerfilter(c,num,tp) 
+        return c:GetSequence()<(Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)-num) and (not c:IsType(TYPE_SKILL))
+end
+
+function s.replacecards(tp)
+    local decklist=s.cheattype[tp]
+    local target=cheathands[decklist][s.cheatnum[tp]]
+    local need=5
+
+    local topdeck=Duel.GetMatchingGroup(s.topdeckfilter, tp, LOCATION_DECK, 0, nil, need, tp)
+    local bottomcards=Duel.GetMatchingGroup(s.botseekerfilter, tp, LOCATION_DECK, 0, nil, need, tp)
+    Duel.DisableShuffleCheck()
+
+    if #topdeck==0 or #bottomcards==0 then return end
+
+    local desiredCounts={}
+    for _,code in ipairs(target) do
+        desiredCounts[code]=(desiredCounts[code] or 0)+1
+    end
+
+    local topCounts={}
+    for tc in topdeck:Iter() do
+        local code=tc:GetOriginalCode()
+        topCounts[code]=(topCounts[code] or 0)+1
+    end
+    local cardstoreplace=Group.CreateGroup()
+    for code,qty in pairs(desiredCounts) do
+        local have=topCounts[code] or 0
+        local miss=qty - math.min(qty, have)
+        while miss>0 do
+            local g=bottomcards:Filter(Card.IsOriginalCode, nil, code)
+            if #g==0 then return end
+            local pick=g:GetFirst()
+            cardstoreplace:AddCard(pick)
+            bottomcards:RemoveCard(pick)
+            miss=miss-1
+        end
+    end
+
+    if #cardstoreplace==0 then return end
+
+    local selectable=Group.CreateGroup()
+    selectable:Merge(topdeck)
+    for code,qty in pairs(desiredCounts) do
+        local keep=math.min(qty, topCounts[code] or 0)
+        for i=1,keep do
+            local g=selectable:Filter(Card.IsOriginalCode, nil, code)
+            if #g>0 then selectable:RemoveCard(g:GetFirst()) end
+        end
+    end
+
+    local toTakeCount=#cardstoreplace
+    if #selectable<toTakeCount then return end
+
+    local cardstotake=s.silentrandomselect(selectable, toTakeCount)
+    if #cardstotake==0 then return end
+
+    for cardtotake in cardstotake:Iter() do
+        local cardtoreplace=cardstoreplace:GetFirst()
+        if not cardtoreplace then break end
+        Group.RemoveCard(cardstoreplace, cardtoreplace)
+        local starterid=cardtotake:GetOriginalCode()
+        local replacedid=cardtoreplace:GetOriginalCode()
+        Card.Recreate(cardtotake, replacedid,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,true)
+        Card.Recreate(cardtoreplace, starterid,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,true)
+    end
+end
+
+
+function s.starterfilter(c,tp)
+	return c:IsOriginalCode(table.unpack(cheathands[s.cheattype[tp]][s.cheatnum[tp]]))
+end
+
+function s.silentrandomselect(group, num)
+    local selected=Group.CreateGroup()
+    for i=1,num do
+        if #group>0 then
+            local integer=Duel.GetRandomNumber(1,#group)
+            local card=group:TakeatPos(integer-1)
+            Group.AddCard(selected, card)
+            Group.RemoveCard(group, card)
+        end
+    end
+    return selected
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
