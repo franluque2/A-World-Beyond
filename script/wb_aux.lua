@@ -37,6 +37,9 @@ REGISTER_FLAG_TECHMINATOR_IGNITION=2048
 FLAG_TECHMINATOR_OPT_PER_MONSTER=851632136
 FLAG_DIKTAT_SEND_FROM_DECK=851632137
 
+-- Gradius
+SET_POWERUP=0xd07
+
 if not WbAux then
     WbAux={}
 end
@@ -273,3 +276,9 @@ Duel.Recover=(function()
 
 
 end)()
+
+
+WbAux.equipguardians={47150851,46037213,10755153,9633505,73544866,74367458}
+function WbAux.IsNonNormalSummonableGuardian(c)
+    return c:IsCode(table.unpack(WbAux.equipguardians)) or ( c:IsSetCard(SET_GUARDIAN) and not c:IsSummonableCard())
+end
