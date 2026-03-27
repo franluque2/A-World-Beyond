@@ -346,7 +346,7 @@ end
 
 -- Metal Gear Rising
 
-CARD_UNENLIGHTENED_MASSES=881565006
+CARD_REVENGEANCE=881565006
 
 --Nightfallen
 
@@ -379,6 +379,3 @@ WbAux.CreateNightfallenSpecialSummonEffect=(function()
     end
 end
 )()
-
---misc
-COUNTER_COREFLAME=0x1704
